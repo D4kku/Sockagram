@@ -1,48 +1,77 @@
 package de.uulm.in.vs.grn.p3a;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.net.Socket;
-import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.util.Arrays;
 
-public class Sockagram {
-    private int seqNum;
-    private int ackNum;
+public class SockagramClient {
     private final Socket socket;
-    private final short srcPort;
-    private final short destPort;
+    private final OutputStream out;
+    private final InputStream in;
 
-    public Sockagram(String host, int port) throws Exception{
-        //TODO gib den sinnvolle werte
-        this.seqNum = 0;
-        this.ackNum = 0;
+    public SockagramClient(String host, int port) throws Exception{
         this.socket = new Socket(host,port); // definier die OutputStreams lokal da sonst der Inhalt Unpredictable wird(nvm vllt doch anders idk)
-        this.srcPort = (short) this.socket.getLocalPort();
-        this.destPort = (short) this.socket.getPort();
+        this.out = socket.getOutputStream();
+        this.in = socket.getInputStream();
     }
 
-    public void main(String[] args) throws Exception {
+    public void main(String[] args){
         //error handling ist für anfänger
-        Sockagram sock = new Sockagram("vns.lxd-vs.uni-ulm.de",7777); // TODO: Muss inputs als adressen und port nutzen
-        sock.sendMessage(constructTCPSegmentHeader(false,false,false),null);
+        SockagramClient sock = null; // TODO: Muss inputs als adressen und port nutzen
+        try {
+            sock = new SockagramClient("vns.lxd-vs.uni-ulm.de",7777);
+        } catch (Exception e) {
+            throw new RuntimeException(e);//lmao
+        }
+        try {
+            sock.sendImage(null, null);
 
 
-    }
-    //muss noch schauen ob ich das nur für den Handshake nutze oder auch für mehr
-    public void sendMessage(byte[] requestHeader,byte[] data){
-        try (OutputStream out = this.socket.getOutputStream()) {
-            out.write(requestHeader);
-            out.write(data);
-            out.flush();
-        }catch (Exception e){
+            //TODO: Seperate close methode für alle dinge lmao
+            sock.socket.close();
+        } catch (IOException e){
 
         }
     }
 
-    //Das ist eigentlich echt dumm wie ich das mache aber ich hab kein bock mehr das umzuschreiben
+    public void sendImage(String filter, byte[] data) throws IOException{
+        byte filterByte = 0; //TODO: Implement the filter Type(ist aber noch nicht auf moodle)
+        out.write(createRequest(filterByte,data));
+        out.flush();
+    }
+    //Returns the specified Image
+    //Daniel hat recht man sollte das eigentlich mit InputStreams machen und nicht wie ich es mache
+    // wegen memory effizienz aber dann müsste ich die Request und response in datenStrukturen wrappen
+    // und die dann weiter Verarbeiten
+    public byte[] getImageResponse() throws IOException{ //TODO: rewrite mit Records das Error handling wird sonst komisch
+        ByteArrayOutputStream response = new ByteArrayOutputStream();
+        int respCode = in.read();
+        int payloadLen = ByteBuffer.wrap(in.readNBytes(4)).getInt();
+        if(respCode == 1){
+            return null;
+        }else{
+            return null;
+        }
+    }
+    private byte[] createRequest(byte filter, byte[] data) throws IOException{
+        int datLen = data.length;
+        int headLen = 4;//constant offset for the length of the header
+        ByteBuffer req = ByteBuffer.allocate(headLen + datLen); // das ging auch als ByteOutputStream aber für hier recht egal und nio ist toll
+        req.put(filter);
+        req.putInt(datLen);
+        req.put(data);
+        return req.array();
+    }
+
+
+
+
+
+    /* Das brauchen wir garnicht aber ich will das nicht einfach löschen ich hab da zuviel zeit reingesunken
+    Dachte wieso auch immer das wir selber die TCP connection machen müssen was komplett dumm ist aber schlafentzug und lrs sind keine gute kombo
+
     private byte[] constructTCPSegmentHeader(Boolean ackBit, Boolean synBit, Boolean finBit) throws IOException {
 
         /* TCP Segment Header Structure:
@@ -59,10 +88,9 @@ public class Sockagram {
         * This Only represents the The Part of the TCP segment that gets constructed in this Function
         * The Tcp standard features a bit more but we dont use options at all and its allowed to be len 0
         * The Only thing missing which we use is the Data but we create that in a different Function.
-        */
+
         //Construct the segment as a Bytebuffer with the size we defined above
         ByteBuffer segment = ByteBuffer.allocate(20);
-
         //---First Line
         segment.putShort((short) srcPort);
         segment.putShort((short) destPort);
@@ -83,4 +111,5 @@ public class Sockagram {
         segment.putShort((short) 0); // Urgend Data bit (not used by us)
         return segment.array();
     }
+    */
 }
