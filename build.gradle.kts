@@ -1,6 +1,7 @@
 plugins {
     id("java")
     id("org.openjfx.javafxplugin") version("0.1.0")
+    application
 }
 
 javafx {
@@ -9,7 +10,6 @@ javafx {
 }
 group = "de.uulm.in.vs.grn.p2a"
 version = "1.0-SNAPSHOT"
-
 
 
 repositories {
@@ -23,7 +23,12 @@ dependencies {
 
 }
 
+application {
+    mainClass = "de.uulm.in.vs.grn.p3a.main"
+}
+
 
 tasks.test {
     useJUnitPlatform()
 }
+
