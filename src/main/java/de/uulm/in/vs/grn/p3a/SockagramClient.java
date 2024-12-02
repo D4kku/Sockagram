@@ -3,10 +3,7 @@ package de.uulm.in.vs.grn.p3a;
 import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class SockagramClient {
     private final Socket socket;
@@ -20,28 +17,6 @@ public class SockagramClient {
     }
 
     public static void main(String[] args){
-        StringBuilder fileName = new StringBuilder("20240918_110728.jpg");// TODO: Make adresse changable
-        String filter = "5";
-        SockagramClient sock = null; // TODO: Muss inputs als adressen und port nutzen
-        try {
-            sock = new SockagramClient("vns.lxd-vs.uni-ulm.de",7777);
-        } catch (Exception e) {
-            throw new RuntimeException(e);//lmao
-        }
-        try {//todo: maybe implement ui
-            Path file = Paths.get(fileName.toString());
-            System.out.println(file.toAbsolutePath());
-            sock.sendImage((byte) 0,Files.readAllBytes(file));
-
-            file = Paths.get(fileName.insert(fileName.indexOf("."),"_"+filter).toString()); //füge eine 2 zum datei namen hinzu
-            System.out.println("New Name: " + file);
-            Files.write(file,sock.getImageResponse());//dafuq passiert hier
-            System.out.println("File received");
-
-            sock.closeConnection();
-        } catch (IOException e){
-
-        }
     }
 
     public void sendImage(byte filter, byte[] fileData) throws IOException{
@@ -50,10 +25,7 @@ public class SockagramClient {
     }
 
     //Returns the specified Image
-    //Daniel hat recht man sollte das eigentlich mit InputStreams machen und nicht wie ich es mache
-    // wegen memory effizienz aber dann müsste ich die Request und response in datenStrukturen wrappen
-    // und die dann weiter Verarbeiten
-    public byte[] getImageResponse() throws IOException{ //TODO: maybe rewrite mit records weil es funkt zwar aber ist memory ineffizient
+    public byte[] getImageResponse() throws IOException{
         ByteArrayOutputStream response = new ByteArrayOutputStream();
         int respCode = in.read();
         int payloadLen = ByteBuffer.wrap(in.readNBytes(4)).getInt();
