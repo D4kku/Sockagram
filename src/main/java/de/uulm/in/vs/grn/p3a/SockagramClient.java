@@ -31,7 +31,7 @@ public class SockagramClient {
         try {//todo: maybe implement ui
             Path file = Paths.get(fileName.toString());
             System.out.println(file.toAbsolutePath());
-            sock.sendImage(filter,Files.readAllBytes(file));
+            sock.sendImage((byte) 0,Files.readAllBytes(file));
 
             file = Paths.get(fileName.insert(fileName.indexOf("."),"_"+filter).toString()); //füge eine 2 zum datei namen hinzu
             System.out.println("New Name: " + file);
@@ -44,11 +44,11 @@ public class SockagramClient {
         }
     }
 
-    public void sendImage(String filter, byte[] fileData) throws IOException{
-        byte filterByte = Byte.parseByte(filter);
-        out.write(createRequest(filterByte,fileData));
+    public void sendImage(byte filter, byte[] fileData) throws IOException{
+        out.write(createRequest(filter,fileData));
         out.flush();
     }
+
     //Returns the specified Image
     //Daniel hat recht man sollte das eigentlich mit InputStreams machen und nicht wie ich es mache
     // wegen memory effizienz aber dann müsste ich die Request und response in datenStrukturen wrappen
